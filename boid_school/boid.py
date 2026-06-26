@@ -40,12 +40,12 @@ class Boid:
             raise TypeError(f"'vectors' must be a tuple or list, not {type(vectors)}")
         if len(vectors) <= 0:
             raise ValueError(f"'vectors' cannnot be an empty sequence.")
-        if weights is not None and len(weights) < len(vectors):
-            raise ValueError(f"'weights' must be at least the length of 'vectors' ({len(weights)} < {len(vectors)})")
+        if weights is not None and len(weights) == len(vectors):
+            raise ValueError(f"'weights' must be the same length as 'vectors' ({len(weights)} != {len(vectors)})")
 
         # Normalising Vectors
         if normalise_vectors:
-            vectors = tuple((vector.normalize()) for vector in vectors)
+            vectors = tuple((vector.normalize() if vector.magnitude != 0 else vector) for vector in vectors)
         
         # Average Calculation
         total_vector = Vector2()
@@ -72,6 +72,7 @@ class Boid:
 
     def get_cohesion_angle(self):
         """Records and returns the cohesion angle."""
+        pass
     
     def get_separation_angle(self):
         """Records and returns the separation angle."""
