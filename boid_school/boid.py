@@ -1,5 +1,5 @@
 # Boid
-from pygame import Vector2, Surface
+from pygame import Vector2, Surface, draw
 from typing import Sequence
 import math
 
@@ -11,7 +11,7 @@ class Boid:
     COHESION_WEIGHT = 1
     SEPARATION_WEIGHT = 1
     SPEED = 25
-    SIZE = 20
+    SIZE = 18
     COLOR = "blue"
 
     _id_counter = 0
@@ -31,6 +31,12 @@ class Boid:
 
         self.__ID = Boid._id_counter
         Boid._id_counter += 1
+
+    @staticmethod
+    def get_arrow_at_angle(angle):
+        return ((math.cos(angle)/2,math.sin(angle)/2),\
+            (math.cos(angle+2.55)*.6,math.sin(angle+2.55)*.6),\
+            (math.cos(angle-2.55)*.6,math.sin(angle-2.55)*.6))
 
     @staticmethod
     def get_avg_vector_angle(vectors: Sequence[Vector2], weights: Sequence[float] | None = None, normalise_vectors: bool = True):
@@ -94,3 +100,9 @@ class Boid:
         """Updates the angle and position."""
         self.update_angle(dt)
         self.update_position(dt)
+
+    def draw(self, surface: Surface):
+        """Draws the boid to the surface."""
+        arrow_points = Boid.get_arrow_at_angle(self.angle)
+        arrow_points = tuple((point[0] * Boid.SIZE + self.x, point[1] * Boid.SIZE + self.y) for point in arrow_points)
+        draw.polygon(surface, color=Boid.COLOR, points=arrow_points)
