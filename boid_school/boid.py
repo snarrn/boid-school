@@ -1,5 +1,5 @@
 # Boid
-from pygame import Vector2
+from pygame import Vector2, Surface
 from typing import Sequence
 import math
 
@@ -31,7 +31,7 @@ class Boid:
 
         self.__ID = Boid._id_counter
         Boid._id_counter += 1
-    
+
     @staticmethod
     def get_avg_vector_angle(vectors: Sequence[Vector2], weights: Sequence[float] | None = None, normalise_vectors: bool = True):
         """Returns the [weighted] average angle of the vectors."""
