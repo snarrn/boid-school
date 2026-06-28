@@ -3,6 +3,7 @@ from pygame import Rect, Vector2, Surface
 from typing import Sequence
 import random, math
 from .boid import Boid
+from .player import Player
 
 class BoidController:
     def __init__(self, num_init_boids: int = 50, spawn_range: Rect = Rect(0,0,100,100)):
@@ -14,7 +15,7 @@ class BoidController:
         
         self.spawn_range = spawn_range
 
-    def update(self, dt: float = 0):
+    def update(self, dt: float = 0, player: Player | None = None):
         """Updates all boid positions and angles."""
 
         # Determining Proximal Boids
@@ -35,7 +36,7 @@ class BoidController:
 
         # Update Boid Positions and Angles
         for boid in self._boids:
-            boid.update(dt)
+            boid.update(dt, player)
 
     def draw(self, surface: Surface, do_debug_view: bool = False):
         """Draws boids to the surface."""
