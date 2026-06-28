@@ -2,7 +2,7 @@
 from pygame import Vector2, Surface, draw
 from typing import Sequence
 import math
-from utilities import get_avg_angle, get_arrow_at_angle
+from .utilities import get_avg_angle, get_arrow_at_angle
 
 class Boid:
     """Boid that behaves based on alignment, cohesion, and separation."""
