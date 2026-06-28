@@ -6,10 +6,13 @@ import math
 class Boid:
     """Boid that behaves based on alignment, cohesion, and separation."""
 
-    CURRENT_ANGLE_WEIGHT = 7
+    CURRENT_ANGLE_WEIGHT = 10
     ALIGNMENT_WEIGHT = 1
     COHESION_WEIGHT = 1
     SEPARATION_WEIGHT = 1
+
+    PROXIMAL_RANGE = 100
+
     SPEED = 25
     SIZE = 18
     COLOR = "blue"
@@ -28,6 +31,8 @@ class Boid:
         self.__target_alignment_angle = self.angle
         self.__target_cohesion_angle = self.angle
         self.__target_separation_angle = self.angle
+
+        self.proximal_boids = tuple()
 
         self.__ID = Boid._id_counter
         Boid._id_counter += 1
@@ -72,20 +77,33 @@ class Boid:
         vectors = tuple((Vector2(math.cos(angle), math.sin(angle))) for angle in angles)
         return Boid.get_avg_vector_angle(vectors, weights=weights, normalise_vectors=False)
 
+    def clear_proximal_boids(self):
+        """Clears the list of proximal boids."""
+        self.proximal_boids = []
+
     def get_alignment_angle(self):
-        """Records and returns the alignments angle."""
-        pass
+        """Calculates and records the alignments angle, which is the average angle of proximal boids."""
+        if len(self.proximal_boids) == 1:
+            self.__target_alignment_angle = self.proximal_boids[0].angle
+        
+        elif len(self.proximal_boids) > 1:
+            proximal_boid_angles = tuple((boid.angle) for boid in self.proximal_boids)
+            self.__target_alignment_angle = Boid.get_avg_angle(proximal_boid_angles)
 
     def get_cohesion_angle(self):
-        """Records and returns the cohesion angle."""
-        pass
+        """Calculates and records the cohesion angle."""
+        self.__target_cohesion_angle = self.angle
     
     def get_separation_angle(self):
-        """Records and returns the separation angle."""
-        pass
+        """Calculates and records the separation angle."""
+        self.__target_separation_angle = self.angle
 
     def update_angle(self, dt: float = 0):
-        """Moves the boid's angle."""
+        """Calculates and set the the boid's new angle."""
+        self.get_alignment_angle()
+        self.get_cohesion_angle()
+        self.get_separation_angle()
+
         self.__target_angle = Boid.get_avg_angle((self.__target_alignment_angle, self.__target_cohesion_angle, self.__target_separation_angle),
                                          weights=(Boid.ALIGNMENT_WEIGHT, Boid.COHESION_WEIGHT, Boid.SEPARATION_WEIGHT))
 
@@ -111,3 +129,5 @@ class Boid:
             draw.line(surface, "red", self.pos, (self.pos.x + Boid.SIZE * math.cos(self.__target_alignment_angle), self.pos.y + Boid.SIZE * math.sin(self.__target_alignment_angle)))
             draw.line(surface, "green", self.pos, (self.pos.x + Boid.SIZE * math.cos(self.__target_cohesion_angle), self.pos.y + Boid.SIZE * math.sin(self.__target_alignment_angle)))
             draw.line(surface, "yellow", self.pos, (self.pos.x + Boid.SIZE * math.cos(self.__target_separation_angle), self.pos.y + Boid.SIZE * math.sin(self.__target_alignment_angle)))
+
+            draw.circle(surface, (0,0,0), self.pos, Boid.PROXIMAL_RANGE, width=1)
