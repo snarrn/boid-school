@@ -8,12 +8,13 @@ class Boid:
 
     CURRENT_ANGLE_WEIGHT = 40
     ALIGNMENT_WEIGHT = 1
-    COHESION_WEIGHT = 1
-    SEPARATION_WEIGHT = 1
+    COHESION_WEIGHT = 2
+    SEPARATION_WEIGHT = 2
 
     PROXIMAL_RANGE = 40
+    SEPARATION_DISTANCE = 30
 
-    SPEED = 25
+    SPEED = 50
     SIZE = 18
     COLOR = "blue"
 
@@ -32,7 +33,7 @@ class Boid:
         self.__target_cohesion_angle = self.angle
         self.__target_separation_angle = self.angle
 
-        self.proximal_boids = tuple()
+        self.proximal_boids: Sequence[Boid] = tuple()
 
         self.__ID = Boid._id_counter
         Boid._id_counter += 1
@@ -111,6 +112,12 @@ class Boid:
         
     def get_separation_angle(self):
         """Calculates and records the separation angle."""
+        if len(self.proximal_boids) > 0:
+            displacement = self.pos - self.proximal_boids[0].pos
+
+            if displacement.magnitude() <= Boid.SEPARATION_DISTANCE:
+                return math.atan2(displacement.y, displacement.x)
+            
         return self.angle
 
     def update_angle(self, dt: float = 0):
