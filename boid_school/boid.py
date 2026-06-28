@@ -46,7 +46,7 @@ class Boid:
             raise TypeError(f"'vectors' must be a tuple or list, not {type(vectors)}")
         if len(vectors) <= 0:
             raise ValueError(f"'vectors' cannnot be an empty sequence.")
-        if weights is not None and len(weights) == len(vectors):
+        if weights is not None and len(weights) != len(vectors):
             raise ValueError(f"'weights' must be the same length as 'vectors' ({len(weights)} != {len(vectors)})")
 
         # Normalising Vectors
@@ -101,8 +101,13 @@ class Boid:
         self.update_angle(dt)
         self.update_position(dt)
 
-    def draw(self, surface: Surface):
+    def draw(self, surface: Surface, draw_target_vectors: bool = False):
         """Draws the boid to the surface."""
         arrow_points = Boid.get_arrow_at_angle(self.angle)
-        arrow_points = tuple((point[0] * Boid.SIZE + self.x, point[1] * Boid.SIZE + self.y) for point in arrow_points)
+        arrow_points = tuple((point[0] * Boid.SIZE + self.pos.x, point[1] * Boid.SIZE + self.pos.y) for point in arrow_points)
         draw.polygon(surface, color=Boid.COLOR, points=arrow_points)
+
+        if draw_target_vectors == True:
+            draw.line(surface, "red", self.pos, (self.pos.x + Boid.SIZE * math.cos(self.__target_alignment_angle), self.pos.y + Boid.SIZE * math.sin(self.__target_alignment_angle)))
+            draw.line(surface, "green", self.pos, (self.pos.x + Boid.SIZE * math.cos(self.__target_cohesion_angle), self.pos.y + Boid.SIZE * math.sin(self.__target_alignment_angle)))
+            draw.line(surface, "yellow", self.pos, (self.pos.x + Boid.SIZE * math.cos(self.__target_separation_angle), self.pos.y + Boid.SIZE * math.sin(self.__target_alignment_angle)))
