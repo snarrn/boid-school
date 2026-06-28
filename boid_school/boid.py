@@ -3,6 +3,7 @@ from pygame import Vector2, Surface, draw
 from typing import Sequence
 import math
 from .utilities import get_avg_angle, get_arrow_at_angle
+from .player import Player
 
 class Boid:
     """Boid that behaves based on alignment, cohesion, and separation."""
@@ -43,7 +44,7 @@ class Boid:
         """Clears the list of proximal boids."""
         self.proximal_boids = []
 
-    def get_alignment_angle(self):
+    def get_alignment_angle(self, player: Player | None = None):
         """Calculates and records the alignments angle, which is the average angle of proximal boids."""
         if len(self.proximal_boids) == 1:
             return self.proximal_boids[0].angle
@@ -54,7 +55,7 @@ class Boid:
 
         return self.angle
 
-    def get_cohesion_angle(self):
+    def get_cohesion_angle(self, player: Player | None = None):
         """Calculates and records the cohesion angle."""
         if len(self.proximal_boids) == 1:
             displacement_vector = self.proximal_boids[0].pos - self.pos
@@ -71,21 +72,45 @@ class Boid:
 
         return self.angle
         
-    def get_separation_angle(self):
+    def get_separation_angle(self, player: Player | None = None):
         """Calculates and records the separation angle."""
-        if len(self.proximal_boids) > 0:
-            displacement = self.pos - self.proximal_boids[0].pos
+        displacement = Vector2()
 
-            if displacement.magnitude() <= Boid.SEPARATION_DISTANCE:
+        if len(self.proximal_boids) == 0:
+            if player is not None:
+                displacement = self.pos - player.pos
+                if 0 < displacement.magnitude() <= Boid.PROXIMAL_RANGE:
+                    return math.atan2(displacement.y, displacement.x)
+        
+        else:
+            min_squared_dist = float("inf")
+            closest_boid = None
+
+            for boid in self.proximal_boids:
+                squared_dist = (boid.pos.x - self.pos.x)**2 + (boid.pos.y - self.pos.y)**2
+
+                if squared_dist < Boid.SEPARATION_DISTANCE**2 and squared_dist < min_squared_dist:
+                    min_squared_dist = squared_dist
+                    closest_boid = boid
+
+            if closest_boid is not None:
+                displacement = self.pos - closest_boid.pos
+
+            if player is not None:
+                player_displacement = self.pos - player.pos
+                if player_displacement.magnitude() < displacement.magnitude():
+                    displacement = player_displacement
+            
+            if displacement.magnitude() > 0:
                 return math.atan2(displacement.y, displacement.x)
             
         return self.angle
 
-    def update_angle(self, dt: float = 0):
+    def update_angle(self, dt: float = 0, player: Player | None = None):
         """Calculates and set the the boid's new angle."""
-        self.__target_alignment_angle = self.get_alignment_angle()
-        self.__target_cohesion_angle = self.get_cohesion_angle()
-        self.__target_separation_angle = self.get_separation_angle()
+        self.__target_alignment_angle = self.get_alignment_angle(player)
+        self.__target_cohesion_angle = self.get_cohesion_angle(player)
+        self.__target_separation_angle = self.get_separation_angle(player)
 
         self.__target_angle = get_avg_angle((self.__target_alignment_angle, self.__target_cohesion_angle, self.__target_separation_angle),
                                          weights=(Boid.ALIGNMENT_WEIGHT, Boid.COHESION_WEIGHT, Boid.SEPARATION_WEIGHT))
@@ -97,9 +122,9 @@ class Boid:
         self.pos.x += math.cos(self.angle) * Boid.SPEED * dt
         self.pos.y += math.sin(self.angle) * Boid.SPEED * dt
 
-    def update(self, dt: float = 0):
+    def update(self, dt: float = 0, player: Player | None = None):
         """Updates the angle and position."""
-        self.update_angle(dt)
+        self.update_angle(dt, player)
         self.update_position(dt)
 
     def draw(self, surface: Surface, draw_target_vectors: bool = False):
@@ -110,7 +135,7 @@ class Boid:
 
         if draw_target_vectors == True:
             draw.line(surface, "red", self.pos, (self.pos.x + Boid.SIZE * math.cos(self.__target_alignment_angle), self.pos.y + Boid.SIZE * math.sin(self.__target_alignment_angle)))
-            draw.line(surface, "green", self.pos, (self.pos.x + Boid.SIZE * math.cos(self.__target_cohesion_angle), self.pos.y + Boid.SIZE * math.sin(self.__target_alignment_angle)))
-            draw.line(surface, "yellow", self.pos, (self.pos.x + Boid.SIZE * math.cos(self.__target_separation_angle), self.pos.y + Boid.SIZE * math.sin(self.__target_alignment_angle)))
+            draw.line(surface, "green", self.pos, (self.pos.x + Boid.SIZE * math.cos(self.__target_cohesion_angle), self.pos.y + Boid.SIZE * math.sin(self.__target_cohesion_angle)))
+            draw.line(surface, "yellow", self.pos, (self.pos.x + Boid.SIZE * math.cos(self.__target_separation_angle), self.pos.y + Boid.SIZE * math.sin(self.__target_separation_angle)))
 
             draw.circle(surface, (0,0,0), self.pos, Boid.PROXIMAL_RANGE, width=1)
