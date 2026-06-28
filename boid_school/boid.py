@@ -2,7 +2,7 @@
 from pygame import Vector2, Surface, draw
 from typing import Sequence
 import math
-from utilities import get_avg_angle
+from utilities import get_avg_angle, get_arrow_at_angle
 
 class Boid:
     """Boid that behaves based on alignment, cohesion, and separation."""
@@ -38,12 +38,6 @@ class Boid:
 
         self.__ID = Boid._id_counter
         Boid._id_counter += 1
-
-    @staticmethod
-    def get_arrow_at_angle(angle):
-        return ((math.cos(angle)/2,math.sin(angle)/2),\
-            (math.cos(angle+2.55)*.6,math.sin(angle+2.55)*.6),\
-            (math.cos(angle-2.55)*.6,math.sin(angle-2.55)*.6))
 
     def clear_proximal_boids(self):
         """Clears the list of proximal boids."""
@@ -110,7 +104,7 @@ class Boid:
 
     def draw(self, surface: Surface, draw_target_vectors: bool = False):
         """Draws the boid to the surface."""
-        arrow_points = Boid.get_arrow_at_angle(self.angle)
+        arrow_points = get_arrow_at_angle(self.angle)
         arrow_points = tuple((point[0] * Boid.SIZE + self.pos.x, point[1] * Boid.SIZE + self.pos.y) for point in arrow_points)
         draw.polygon(surface, color=Boid.COLOR, points=arrow_points)
 
