@@ -16,6 +16,24 @@ class BoidController:
 
     def update(self, dt: float = 0):
         """Updates all boid positions and angles."""
+
+        # Determining Proximal Boids
+        for boid in self._boids:
+            boid.proximal_boids = []
+        
+        for i in range(len(self._boids)-1):
+            boid_1 = self._boids[i]
+
+            for j in range(i+1, len(self._boids)):
+                boid_2 = self._boids[j]
+
+                square_dist = (boid_2.pos.x - boid_1.pos.x)**2 + (boid_2.pos.y - boid_1.pos.y)**2
+
+                if square_dist <= Boid.PROXIMAL_RANGE**2:
+                    boid_1.proximal_boids.append(boid_2)
+                    boid_2.proximal_boids.append(boid_1)
+
+        # Update Boid Positions and Angles
         for boid in self._boids:
             boid.update(dt)
 
