@@ -9,7 +9,7 @@ class Boid:
     """Boid that behaves based on alignment, cohesion, and separation."""
 
     CURRENT_ANGLE_WEIGHT = 40
-    ALIGNMENT_WEIGHT = 1
+    ALIGNMENT_WEIGHT = 2
     COHESION_WEIGHT = 4
     SEPARATION_WEIGHT = 5
 
@@ -48,11 +48,17 @@ class Boid:
 
     def get_alignment_angle(self, player: Player | None = None):
         """Calculates and records the alignments angle, which is the average angle of proximal boids."""
-        if len(self.proximal_boids) == 1:
-            return self.proximal_boids[0].angle
+        if len(self.proximal_boids) == 0:
+            if player is not None:
+                if math.dist(self.pos, player.pos) <= Boid.PLAYER_INFLUENCE_RANGE:
+                    return player.angle
         
-        elif len(self.proximal_boids) > 1:
-            proximal_boid_angles = tuple((boid.angle) for boid in self.proximal_boids)
+        else:
+            proximal_boid_angles = list((boid.angle) for boid in self.proximal_boids)
+
+            if player is not None and math.dist(self.pos, player.pos) <= Boid.PLAYER_INFLUENCE_RANGE:
+                proximal_boid_angles.append(player.angle)
+
             return get_avg_angle(proximal_boid_angles)
 
         return self.angle
