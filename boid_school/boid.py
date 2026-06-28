@@ -10,10 +10,12 @@ class Boid:
 
     CURRENT_ANGLE_WEIGHT = 40
     ALIGNMENT_WEIGHT = 1
-    COHESION_WEIGHT = 2
-    SEPARATION_WEIGHT = 2
+    COHESION_WEIGHT = 4
+    SEPARATION_WEIGHT = 5
 
     PROXIMAL_RANGE = 40
+    PLAYER_INFLUENCE_RANGE = 100
+    MIN_COHESION_RANGE = 15
     SEPARATION_DISTANCE = 30
 
     SPEED = 50
@@ -57,18 +59,29 @@ class Boid:
 
     def get_cohesion_angle(self, player: Player | None = None):
         """Calculates and records the cohesion angle."""
-        if len(self.proximal_boids) == 1:
-            displacement_vector = self.proximal_boids[0].pos - self.pos
-            return math.atan2(displacement_vector.y, displacement_vector.x)
+        if len(self.proximal_boids) == 0:
+            if player is not None:
+                displacement = player.pos - self.pos
 
-        elif len(self.proximal_boids) > 1:
-            avg_x = sum((boid.pos.x) for boid in self.proximal_boids) / len(self.proximal_boids) + self.pos.x
-            avg_y = sum((boid.pos.y) for boid in self.proximal_boids) / len(self.proximal_boids) + self.pos.y
+                if Boid.MIN_COHESION_RANGE <= displacement.magnitude() <= Boid.PLAYER_INFLUENCE_RANGE:
+                    return math.atan2(displacement.y, displacement.x)
 
-            displacement_vector = Vector2(avg_x, avg_y) - self.pos
+        else:
+            total_x = sum((boid.pos.x) for boid in self.proximal_boids)
+            total_y = sum((boid.pos.y) for boid in self.proximal_boids)
 
-            if displacement_vector.magnitude() >= Boid.SIZE / 10:
-                return math.atan2(displacement_vector.y, displacement_vector.x)
+            if player is not None and (player.pos - self.pos).magnitude() <= Boid.PLAYER_INFLUENCE_RANGE:
+                avg_x = (total_x + player.pos.x) / (len(self.proximal_boids) + 1)
+                avg_y = (total_y + player.pos.y) / (len(self.proximal_boids) + 1)
+            
+            else:
+                avg_x = total_x / len(self.proximal_boids)
+                avg_y = total_y / len(self.proximal_boids)
+
+            displacement = Vector2(avg_x, avg_y) - self.pos
+
+            if displacement.magnitude() >= Boid.MIN_COHESION_RANGE:
+                return math.atan2(displacement.y, displacement.x)
 
         return self.angle
         
@@ -79,7 +92,7 @@ class Boid:
         if len(self.proximal_boids) == 0:
             if player is not None:
                 displacement = self.pos - player.pos
-                if 0 < displacement.magnitude() <= Boid.PROXIMAL_RANGE:
+                if 0 < displacement.magnitude() <= Boid.PLAYER_INFLUENCE_RANGE:
                     return math.atan2(displacement.y, displacement.x)
         
         else:
