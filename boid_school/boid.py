@@ -6,12 +6,12 @@ import math
 class Boid:
     """Boid that behaves based on alignment, cohesion, and separation."""
 
-    CURRENT_ANGLE_WEIGHT = 10
+    CURRENT_ANGLE_WEIGHT = 40
     ALIGNMENT_WEIGHT = 1
     COHESION_WEIGHT = 1
     SEPARATION_WEIGHT = 1
 
-    PROXIMAL_RANGE = 100
+    PROXIMAL_RANGE = 40
 
     SPEED = 25
     SIZE = 18
@@ -84,25 +84,40 @@ class Boid:
     def get_alignment_angle(self):
         """Calculates and records the alignments angle, which is the average angle of proximal boids."""
         if len(self.proximal_boids) == 1:
-            self.__target_alignment_angle = self.proximal_boids[0].angle
+            return self.proximal_boids[0].angle
         
         elif len(self.proximal_boids) > 1:
             proximal_boid_angles = tuple((boid.angle) for boid in self.proximal_boids)
-            self.__target_alignment_angle = Boid.get_avg_angle(proximal_boid_angles)
+            return Boid.get_avg_angle(proximal_boid_angles)
+
+        return self.angle
 
     def get_cohesion_angle(self):
         """Calculates and records the cohesion angle."""
-        self.__target_cohesion_angle = self.angle
-    
+        if len(self.proximal_boids) == 1:
+            displacement_vector = self.proximal_boids[0].pos - self.pos
+            return math.atan2(displacement_vector.y, displacement_vector.x)
+
+        elif len(self.proximal_boids) > 1:
+            avg_x = sum((boid.pos.x) for boid in self.proximal_boids) / len(self.proximal_boids) + self.pos.x
+            avg_y = sum((boid.pos.y) for boid in self.proximal_boids) / len(self.proximal_boids) + self.pos.y
+
+            displacement_vector = Vector2(avg_x, avg_y) - self.pos
+
+            if displacement_vector.magnitude() >= Boid.SIZE / 10:
+                return math.atan2(displacement_vector.y, displacement_vector.x)
+
+        return self.angle
+        
     def get_separation_angle(self):
         """Calculates and records the separation angle."""
-        self.__target_separation_angle = self.angle
+        return self.angle
 
     def update_angle(self, dt: float = 0):
         """Calculates and set the the boid's new angle."""
-        self.get_alignment_angle()
-        self.get_cohesion_angle()
-        self.get_separation_angle()
+        self.__target_alignment_angle = self.get_alignment_angle()
+        self.__target_cohesion_angle = self.get_cohesion_angle()
+        self.__target_separation_angle = self.get_separation_angle()
 
         self.__target_angle = Boid.get_avg_angle((self.__target_alignment_angle, self.__target_cohesion_angle, self.__target_separation_angle),
                                          weights=(Boid.ALIGNMENT_WEIGHT, Boid.COHESION_WEIGHT, Boid.SEPARATION_WEIGHT))
