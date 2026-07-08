@@ -9,7 +9,8 @@ pygame.init()
 windowSize = (950,950)
 bgCol = "light gray"
 
-boid_controller = BoidController(num_init_boids=50, num_init_sharks=1, spawn_range=pygame.Rect(200,200,windowSize[0]-400,windowSize[1]-400))
+boid_controller = BoidController(num_init_boids=100, num_init_sharks=10, spawn_range=pygame.Rect(200,200,windowSize[0]-400,windowSize[1]-400))
+Player.SPEED_NORMAL = 100
 player = Player(pygame.Vector2(windowSize[0]/2, windowSize[1]/2))
 
 # LOOP SET-UP
@@ -22,12 +23,7 @@ mousePos = None
 running = True
 tick = 0
 dt = 0
-"""
-THINGS TO DO
-------------
-Fix problem with angles changing based on the frame rate.
 
-"""
 # MAINLOOP
 while running:
 

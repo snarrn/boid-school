@@ -89,28 +89,63 @@ class BoidController:
         """Returns a random boid or None if there are no boids."""
         return random.choice(self._boids)
 
+    def get_boids_by_pos(self, pos: Vector2, max_dist: float | None = None, order_by_closest_first: bool = False) -> Sequence[Boid]:
+        """Returns a list of all boids within 'max_dist' of 'pos'. Returns all boids with the exact position if 'max_dist' is None. The boids are in no particular order unless 'order_by_closest_first' is True."""
+
+        matches = []
+
+        if max_dist is None or max_dist == 0:
+            for boid in self._boids:
+                if boid.pos == pos:
+                    matches.append(boid)
+        
+        else:
+            for boid in self._boids:
+                if (boid.pos.x - pos.x)**2 + (boid.pos.y - pos.y)**2 <= max_dist**2:
+                    matches.append(boid)
+
+            if order_by_closest_first:
+                matches.sort(key=lambda x: ((x.pos.x - pos.x)**2 + (x.pos.y - pos.y)**2))
+        
+        return matches
+
     def update(self, dt: float = 0, player: Player | None = None):
         """Updates all boids and sharks."""
 
-        # Determining Proximal Boids
-        for boid in self._boids:
-            boid.proximal_boids = []
-        
-        for i in range(len(self._boids)-1):
-            boid_1 = self._boids[i]
+        if len(self._boids) > 0:
 
-            for j in range(i+1, len(self._boids)):
-                boid_2 = self._boids[j]
+            # Determining Proximal Boids and Sharks
+            for boid in self._boids:
+                boid.proximal_boids = []
+                boid.proximal_sharks = []
+            
+            for i in range(len(self._boids)-1):
+                boid_1 = self._boids[i]
 
-                square_dist = (boid_2.pos.x - boid_1.pos.x)**2 + (boid_2.pos.y - boid_1.pos.y)**2
+                # Proximal Sharks
+                for shark in self._sharks:
+                    if ((boid_1.pos.x - shark.pos.x)**2 + (boid_1.pos.y - shark.pos.y)**2) <= Boid.PROXIMAL_RANGE**2:
+                        boid_1.proximal_sharks.append(shark)
 
-                if square_dist <= Boid.PROXIMAL_RANGE**2:
-                    boid_1.proximal_boids.append(boid_2)
-                    boid_2.proximal_boids.append(boid_1)
+                # Proximal Boids
+                for j in range(i+1, len(self._boids)):
+                    boid_2 = self._boids[j]
 
-        # Update Boid Positions and Angles
-        for boid in self._boids:
-            boid.update(dt, player)
+                    square_dist = (boid_2.pos.x - boid_1.pos.x)**2 + (boid_2.pos.y - boid_1.pos.y)**2
+
+                    if square_dist <= Boid.PROXIMAL_RANGE**2:
+                        boid_1.proximal_boids.append(boid_2)
+                        boid_2.proximal_boids.append(boid_1)
+            
+            # Proximal Sharks for Last Boid
+            last_boid = self._boids[-1]
+            for shark in self._sharks:
+                if ((last_boid.pos.x - shark.pos.x)**2 + (last_boid.pos.y - shark.pos.y)**2) <= Boid.PROXIMAL_RANGE**2:
+                    last_boid.proximal_sharks.append(shark)
+
+            # Update Boid Positions and Angles
+            for boid in self._boids:
+                boid.update(dt, player)
         
         # Update Sharks
         for shark in self._sharks:
