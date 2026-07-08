@@ -41,7 +41,10 @@ class Boid:
         self.__target_cohesion_angle = self.angle
         self.__target_separation_angle = self.angle
 
-        self.proximal_boids: Sequence[Boid] = tuple()
+        self.proximal_boids = tuple()
+        self.proximal_sharks = tuple()
+
+        self.was_eaten = False
 
         self.__ID = Boid._id_counter
         Boid._id_counter += 1
@@ -99,30 +102,50 @@ class Boid:
         """Calculates and records the separation angle."""
         displacement = Vector2()
 
-        if len(self.proximal_boids) == 0:
+        if len(self.proximal_boids) == 0 and len(self.proximal_sharks) == 0:
+            # Only Player Influence
             if player is not None:
                 displacement = self.pos - player.pos
                 if 0 < displacement.magnitude() <= Boid.PLAYER_INFLUENCE_RANGE:
                     return math.atan2(displacement.y, displacement.x)
         
         else:
-            min_squared_dist = float("inf")
-            closest_boid = None
+            displacement = Vector2()
 
-            for boid in self.proximal_boids:
-                squared_dist = (boid.pos.x - self.pos.x)**2 + (boid.pos.y - self.pos.y)**2
+            # Shark Influence
+            if len(self.proximal_sharks) > 0:
+                min_squared_dist = float("inf")
+                closest_shark = None
 
-                if squared_dist < Boid.SEPARATION_DISTANCE**2 and squared_dist < min_squared_dist:
-                    min_squared_dist = squared_dist
-                    closest_boid = boid
+                for shark in self.proximal_sharks:
+                    squared_dist = (shark.pos.x - self.pos.x)**2 + (shark.pos.y - self.pos.y)**2
 
-            if closest_boid is not None:
-                displacement = self.pos - closest_boid.pos
+                    if squared_dist < min_squared_dist:
+                        min_squared_dist = squared_dist
+                        closest_shark = shark
+                
+                if closest_shark is not None:
+                    displacement = self.pos - closest_shark.pos
+            
+            # Boid or Player Influence
+            else:
+                min_squared_dist = float("inf")
+                closest_boid = None
 
-            if player is not None:
-                player_displacement = self.pos - player.pos
-                if player_displacement.magnitude() < displacement.magnitude():
-                    displacement = player_displacement
+                for boid in self.proximal_boids:
+                    squared_dist = (boid.pos.x - self.pos.x)**2 + (boid.pos.y - self.pos.y)**2
+
+                    if squared_dist < Boid.SEPARATION_DISTANCE**2 and squared_dist < min_squared_dist:
+                        min_squared_dist = squared_dist
+                        closest_boid = boid
+            
+                if closest_boid is not None:
+                    displacement = self.pos - closest_boid.pos
+
+                if player is not None:
+                    player_displacement = self.pos - player.pos
+                    if player_displacement.magnitude() < displacement.magnitude():
+                        displacement = player_displacement
             
             if displacement.magnitude() > 0:
                 return math.atan2(displacement.y, displacement.x)
@@ -138,7 +161,7 @@ class Boid:
         self.__target_angle = get_avg_angle((self.__target_alignment_angle, self.__target_cohesion_angle, self.__target_separation_angle),
                                          weights=(Boid.ALIGNMENT_WEIGHT, Boid.COHESION_WEIGHT, Boid.SEPARATION_WEIGHT))
 
-        self.angle = get_avg_angle((self.angle, self.__target_angle), weights=(Boid.CURRENT_ANGLE_WEIGHT, dt * 200))
+        self.angle = get_avg_angle((self.angle, self.__target_angle), weights=(Boid.CURRENT_ANGLE_WEIGHT, dt * 150))
 
     def update_position(self, dt: float = 0):
         """Moves the boid's position."""
@@ -165,3 +188,4 @@ class Boid:
 
         if draw_outline == True:
             draw.polygon(surface, color=Boid.COLOR_OUTLINE, points=arrow_points, width=2)
+            
