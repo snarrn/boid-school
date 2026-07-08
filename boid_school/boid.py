@@ -138,7 +138,7 @@ class Boid:
         self.__target_angle = get_avg_angle((self.__target_alignment_angle, self.__target_cohesion_angle, self.__target_separation_angle),
                                          weights=(Boid.ALIGNMENT_WEIGHT, Boid.COHESION_WEIGHT, Boid.SEPARATION_WEIGHT))
 
-        self.angle = get_avg_angle((self.angle, self.__target_angle), weights=(Boid.CURRENT_ANGLE_WEIGHT, 1))
+        self.angle = get_avg_angle((self.angle, self.__target_angle), weights=(Boid.CURRENT_ANGLE_WEIGHT, dt * 200))
 
     def update_position(self, dt: float = 0):
         """Moves the boid's position."""
