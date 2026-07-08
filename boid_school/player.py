@@ -69,7 +69,7 @@ class Player:
 
             if displacement.magnitude() > 0:
                 angle_to_mouse = math.atan2(displacement.y, displacement.x)
-                self.angle = get_avg_angle(angles=(self.angle, angle_to_mouse), weights=(Player.CURRENT_ANGLE_WEIGHT, 1))
+                self.angle = get_avg_angle(angles=(self.angle, angle_to_mouse), weights=(Player.CURRENT_ANGLE_WEIGHT, dt * 200))
 
                 # Setting Current Player Speed
                 if displacement.magnitude() < Player.SLOW_SPEED_RANGE:
