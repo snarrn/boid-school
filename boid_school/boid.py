@@ -21,6 +21,7 @@ class Boid:
     SPEED = 50
     SIZE = 18
     COLOR = "blue"
+    COLOR_OUTLINE = "red"
 
     _id_counter = 0
 
@@ -149,7 +150,7 @@ class Boid:
         self.update_angle(dt, player)
         self.update_position(dt)
 
-    def draw(self, surface: Surface, draw_target_vectors: bool = False):
+    def draw(self, surface: Surface, draw_target_vectors: bool = False, draw_outline: bool = False):
         """Draws the boid to the surface."""
         arrow_points = get_arrow_at_angle(self.angle)
         arrow_points = tuple((point[0] * Boid.SIZE + self.pos.x, point[1] * Boid.SIZE + self.pos.y) for point in arrow_points)
@@ -161,3 +162,6 @@ class Boid:
             draw.line(surface, "yellow", self.pos, (self.pos.x + Boid.SIZE * math.cos(self.__target_separation_angle), self.pos.y + Boid.SIZE * math.sin(self.__target_separation_angle)))
 
             draw.circle(surface, (0,0,0), self.pos, Boid.PROXIMAL_RANGE, width=1)
+
+        if draw_outline == True:
+            draw.polygon(surface, color=Boid.COLOR_OUTLINE, points=arrow_points, width=2)
