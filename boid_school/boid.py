@@ -28,6 +28,9 @@ class Boid:
     def ID(self):
         return self.__ID
 
+    def __repr__(self):
+        return f"<Boid #{self.ID}>"
+
     def __init__(self, pos: Vector2, angle: float):
         self.pos = pos
         self.angle = angle
