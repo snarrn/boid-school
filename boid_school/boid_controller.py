@@ -3,15 +3,21 @@ from pygame import Rect, Vector2, Surface
 from typing import Sequence
 import random, math
 from .boid import Boid
+from .shark import Shark
 from .player import Player
 
 class BoidController:
-    def __init__(self, num_init_boids: int = 50, spawn_range: Rect = Rect(0,0,100,100)):
+    def __init__(self, num_init_boids: int = 50, num_init_sharks: int = 0, spawn_range: Rect = Rect(0,0,100,100)):
         """Manages and updates boids."""
         self._boids: Sequence[Boid] = []
         for _ in range(num_init_boids):
             x, y = random.randint(spawn_range.left, spawn_range.right), random.randint(spawn_range.top, spawn_range.bottom)
             self._boids.append(Boid(Vector2(x, y), random.random() * 2 * math.pi))
+        
+        self._sharks: Sequence[Shark] = []
+        for _ in range(num_init_sharks):
+            x, y = random.randint(spawn_range.left, spawn_range.right), random.randint(spawn_range.top, spawn_range.bottom)
+            self._sharks.append(Shark(Vector2(x, y), random.random() * 2 * math.pi, controller=self))
         
         self.spawn_range = spawn_range
 
@@ -79,8 +85,12 @@ class BoidController:
         
         return None
 
+    def get_random_boid(self) -> Boid | None:
+        """Returns a random boid or None if there are no boids."""
+        return random.choice(self._boids)
+
     def update(self, dt: float = 0, player: Player | None = None):
-        """Updates all boid positions and angles."""
+        """Updates all boids and sharks."""
 
         # Determining Proximal Boids
         for boid in self._boids:
@@ -101,8 +111,15 @@ class BoidController:
         # Update Boid Positions and Angles
         for boid in self._boids:
             boid.update(dt, player)
+        
+        # Update Sharks
+        for shark in self._sharks:
+            shark.update(dt)
 
     def draw(self, surface: Surface, do_debug_view: bool = False):
-        """Draws boids to the surface."""
+        """Draws boids and sharks to the surface."""
         for boid in self._boids:
             boid.draw(surface, do_debug_view)
+
+        for shark in self._sharks:
+            shark.draw(surface, do_debug_view)
