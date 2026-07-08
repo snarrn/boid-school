@@ -1,4 +1,4 @@
-# Boid School - v.0.1
+# Boid School - v.0.2
 A boid herding game built around Pygame. Play as a fish and guide the school away from danger.
 
 **This project is still in its early stages of development. Additional documentation will be created when version 1.0 is released.**
@@ -7,12 +7,6 @@ A boid herding game built around Pygame. Play as a fish and guide the school awa
 Example gameplay will be shown here.
 
 ## Current Features
-No current features.
-
-## Usage Instructions
-To be written. The game will function as a standard Python package that may be installed using PIP.
-
-## Next Steps
 ### Version 0.1 - Boid Fundamentals
 * Boids
   - Simple triangle rendering
@@ -24,6 +18,10 @@ To be written. The game will function as a standard Python package that may be i
 * Shark Boids
   - Chase and eat fish boids
 
+## Usage Instructions
+To be written. The game will function as a standard Python package that may be installed using PIP.
+
+## Next Steps
 ### Version 0.2 - Visual Advancements
 * Camera
   - Panning the view
@@ -33,7 +31,8 @@ To be written. The game will function as a standard Python package that may be i
   - Seafloor obstacle generation
 * Boids
   - Collisions with obstacles
-  - Variable speed (using Perlin noise)
+  - Variable speed (based on Perlin noise and proximity to sharks)
+  - Improved target angle weighting
 
 ### Version 0.3 - Game Mechanics
 * Start Screen
@@ -43,7 +42,7 @@ To be written. The game will function as a standard Python package that may be i
 * High Scores
 
 ### Version 1.0
-* Optimization (if needed)
+* Optimization
   - Quad tree
   - Lazy alignment updates
 * Sound Effects
